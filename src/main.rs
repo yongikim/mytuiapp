@@ -1,3 +1,3 @@
 fn main() {
-    mytuiapp::inputs();
+    mytuiapp::vim();
 }

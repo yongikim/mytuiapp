@@ -4,8 +4,8 @@ extern crate termion;
 use std::io::{stdin, stdout, Write};
 use std::thread;
 use std::time::Duration;
-use termion::event::Key;
-use termion::input::TermRead;
+use termion::event::*;
+use termion::input::{MouseTerminal, TermRead};
 use termion::raw::IntoRawMode;
 use termion::{clear, color, cursor, style};
 
@@ -67,43 +67,91 @@ pub fn raw() {
     writeln!(stdout, "Hey there.").unwrap();
 }
 
-pub fn inputs() {
+pub fn vim() {
     let stdin = stdin();
     let mut stdout = stdout().into_raw_mode().unwrap();
 
     write!(
         stdout,
-        "{}{}q to exit. Type stuff, use alt, and so on.{}",
+        "{}{}q to exit. Type stuff, use alt, and so on.",
         termion::clear::All,
-        termion::cursor::Goto(1, 1),
-        termion::cursor::Hide
+        termion::cursor::Goto(1, 1)
     )
     .unwrap();
 
     stdout.flush().unwrap();
 
     for c in stdin.keys() {
-        write!(
-            stdout,
-            "{}{}",
-            termion::cursor::Goto(1, 1),
-            termion::clear::CurrentLine
-        )
-        .unwrap();
-
         match c.unwrap() {
             Key::Char('q') => break,
-            Key::Char(c) => println!("{}", c),
-            Key::Alt(c) => println!("Alt-{}", c),
-            Key::Ctrl(c) => println!("Ctrl-{}", c),
-            Key::Left => println!("<left>"),
-            Key::Right => println!("<right>"),
-            Key::Up => println!("<up>"),
-            Key::Down => println!("<down>"),
-            _ => println!("Other"),
+            Key::Char('h') => {
+                write!(stdout, "{}{}", cursor::Left(1), cursor::Show).unwrap();
+            }
+            Key::Char('j') => {
+                write!(stdout, "{}{}", cursor::Down(1), cursor::Show).unwrap();
+            }
+            Key::Char('k') => {
+                write!(stdout, "{}{}", cursor::Up(1), cursor::Show).unwrap();
+            }
+            Key::Char('l') => {
+                write!(stdout, "{}{}", cursor::Right(1), cursor::Show).unwrap();
+            }
+            Key::Char(c) => {
+                write!(stdout, "{}", c).unwrap();
+            }
+            _ => {}
         }
 
-        // stdout.flush().unwrap();
+        stdout.flush().unwrap();
+    }
+
+    write!(
+        stdout,
+        "{}{}{}",
+        termion::clear::All,
+        cursor::Goto(1, 1),
+        termion::cursor::Show
+    )
+    .unwrap();
+}
+
+pub fn mouse() {
+    let stdin = stdin();
+    let mut stdout = MouseTerminal::from(stdout().into_raw_mode().unwrap());
+
+    writeln!(
+        stdout,
+        "{}{}{}q to exit. Type stuff, use alt, click around...{}{}",
+        termion::clear::All,
+        termion::cursor::Goto(1, 1),
+        color::Fg(termion::color::Rgb(255, 0, 0)),
+        color::Fg(termion::color::Reset),
+        termion::cursor::Hide
+    )
+    .unwrap();
+
+    for c in stdin.events() {
+        let evt = c.unwrap();
+        match evt {
+            Event::Key(Key::Char('q')) => {
+                write!(
+                    stdout,
+                    "{}{}",
+                    termion::cursor::Goto(1, 1),
+                    termion::clear::CurrentLine
+                )
+                .unwrap();
+                break;
+            }
+            Event::Mouse(me) => match me {
+                MouseEvent::Press(_, a, b) | MouseEvent::Release(a, b) | MouseEvent::Hold(a, b) => {
+                    write!(stdout, "{}{}", cursor::Goto(a, b), cursor::Show).unwrap();
+                }
+            },
+            _ => {}
+        }
+
+        stdout.flush().unwrap();
     }
 
     write!(stdout, "{}", termion::cursor::Show).unwrap();
