@@ -1,5 +1,8 @@
 extern crate termion;
 
+pub mod twitter;
+pub mod vim;
+
 // Import the coor module.
 use std::io::{stdin, stdout, Write};
 use std::thread;

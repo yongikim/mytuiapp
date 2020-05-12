@@ -1,3 +1,5 @@
+mod twitter;
+
 fn main() {
-    mytuiapp::vim();
+    twitter::timeline();
 }
