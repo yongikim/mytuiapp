@@ -1,5 +1,7 @@
+use rwitter::credits;
 use rwitter::twitter;
 
 fn main() {
-    twitter::timeline();
+    let credits = credits::get_credits();
+    twitter::timeline(&credits);
 }

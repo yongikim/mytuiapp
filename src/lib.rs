@@ -1,5 +1,6 @@
 extern crate termion;
 
+pub mod credits;
 pub mod twitter;
 pub mod vim;
 

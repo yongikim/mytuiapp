@@ -1,21 +1,12 @@
-extern crate dirs;
 extern crate oauth_client as oauth;
 extern crate serde;
 extern crate serde_json;
 
+use crate::credits;
+
 use oauth::Token;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::BufReader;
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Credits {
-    api_key: String,
-    api_secret_key: String,
-    access_token: String,
-    access_token_secret: String,
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Tweet {
@@ -32,22 +23,9 @@ pub struct User {
     screen_name: String,
 }
 
-// Read from config file for now.
-// TODO: Hit twitter api to request access token.
-pub fn get_credits() -> Credits {
-    let mut path = dirs::home_dir().unwrap();
-    path.push(".twitter_credentials.json");
-    let file = File::open(path).unwrap();
-    let reader = BufReader::new(file);
-    let credits: Credits = serde_json::from_reader(reader).unwrap();
-
-    credits
-}
-
-pub fn timeline() {
+pub fn timeline(credits: &credits::Credits) {
     let endpoint = "https://api.twitter.com/1.1/statuses/home_timeline.json";
 
-    let credits = get_credits();
     let consumer = Token::new(&credits.api_key, &credits.api_secret_key);
     let access = Token::new(&credits.access_token, &credits.access_token_secret);
     let req_param = HashMap::new();
