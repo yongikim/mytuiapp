@@ -558,17 +558,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mytuiapp"
-version = "0.1.0"
-dependencies = [
- "dirs",
- "oauth-client",
- "serde",
- "serde_json",
- "termion",
-]
-
-[[package]]
 name = "native-tls"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -872,6 +861,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
 dependencies = [
  "semver",
+]
+
+[[package]]
+name = "rwitter"
+version = "0.1.0"
+dependencies = [
+ "dirs",
+ "oauth-client",
+ "serde",
+ "serde_json",
+ "termion",
 ]
 
 [[package]]
