@@ -7,7 +7,7 @@ use termion::event::*;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
-use crate::twitter::Tweet;
+use crate::models::tweet::Tweet;
 
 pub fn home_timeline(timeline: &Vec<Tweet>) {
     let stdin = stdin();

@@ -1,10 +1,9 @@
-use rwitter::credits;
-use rwitter::twitter;
-use rwitter::view;
+use rwitter::apis;
+use rwitter::views;
 
 fn main() {
-    let credits = credits::get_credits();
-    let timeline = twitter::get_home_timeline(&credits);
+    let credits = apis::credits::get_credits();
+    let timeline = apis::tweets::get_home_timeline(&credits);
 
-    view::home_timeline::home_timeline(&timeline);
+    views::tweets::home_timeline(&timeline);
 }

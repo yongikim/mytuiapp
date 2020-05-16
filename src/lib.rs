@@ -1,9 +1,8 @@
 extern crate termion;
 
-pub mod credits;
-pub mod twitter;
-pub mod view;
-pub mod vim;
+pub mod apis;
+pub mod models;
+pub mod views;
 
 // Import the coor module.
 use std::io::{stdin, stdout, Write};

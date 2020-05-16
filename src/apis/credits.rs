@@ -2,17 +2,10 @@ extern crate dirs;
 extern crate serde;
 extern crate serde_json;
 
-use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufReader;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Credits {
-    pub api_key: String,
-    pub api_secret_key: String,
-    pub access_token: String,
-    pub access_token_secret: String,
-}
+use crate::models::credits::Credits;
 
 // Read from config file for now.
 // TODO: Hit twitter api to request access token.
