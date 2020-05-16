@@ -1,10 +1,10 @@
 use rwitter::credits;
 use rwitter::twitter;
+use rwitter::view;
 
 fn main() {
     let credits = credits::get_credits();
     let timeline = twitter::get_home_timeline(&credits);
 
-    println!("{:#?}", timeline);
-    println!("{:?} tweets", timeline.len());
+    view::home_timeline::home_timeline(&timeline);
 }

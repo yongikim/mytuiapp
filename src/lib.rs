@@ -2,6 +2,7 @@ extern crate termion;
 
 pub mod credits;
 pub mod twitter;
+pub mod view;
 pub mod vim;
 
 // Import the coor module.

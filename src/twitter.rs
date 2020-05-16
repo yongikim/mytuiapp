@@ -10,11 +10,11 @@ use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Tweet {
-    created_at: String,
-    text: String,
-    retweet_count: i32,
-    favorite_count: i32,
-    user: User,
+    pub created_at: String,
+    pub text: String,
+    pub retweet_count: i32,
+    pub favorite_count: i32,
+    pub user: User,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
