@@ -3,5 +3,8 @@ use rwitter::twitter;
 
 fn main() {
     let credits = credits::get_credits();
-    twitter::timeline(&credits);
+    let timeline = twitter::get_home_timeline(&credits);
+
+    println!("{:#?}", timeline);
+    println!("{:?} tweets", timeline.len());
 }

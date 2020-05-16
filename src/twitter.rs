@@ -23,18 +23,18 @@ pub struct User {
     screen_name: String,
 }
 
-pub fn timeline(credits: &credits::Credits) {
+pub fn get_home_timeline(credits: &credits::Credits) -> Vec<Tweet> {
     let endpoint = "https://api.twitter.com/1.1/statuses/home_timeline.json";
 
     let consumer = Token::new(&credits.api_key, &credits.api_secret_key);
     let access = Token::new(&credits.access_token, &credits.access_token_secret);
     let req_param = HashMap::new();
 
+    // TODO: Suggest to reload instead of calling `panic!`
     let bytes = oauth::get(endpoint, &consumer, Some(&access), Some(&req_param)).unwrap();
     let resp = String::from_utf8(bytes).unwrap();
 
-    let json: Vec<Tweet> = serde_json::from_str(&resp).unwrap();
+    let timeline: Vec<Tweet> = serde_json::from_str(&resp).unwrap();
 
-    println!("timeline response: {:#?}", json);
-    println!("{} tweets", json.len());
+    timeline
 }
