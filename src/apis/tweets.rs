@@ -13,13 +13,15 @@ pub fn get_home_timeline(credits: &Credits) -> Vec<Tweet> {
 
     let consumer = Token::new(&credits.api_key, &credits.api_secret_key);
     let access = Token::new(&credits.access_token, &credits.access_token_secret);
-    let req_param = HashMap::new();
+    let mut req_param = HashMap::new();
+    req_param.insert("count".into(), "100".into());
 
     // TODO: Suggest to reload instead of calling `panic!`
     let bytes = oauth::get(endpoint, &consumer, Some(&access), Some(&req_param)).unwrap();
     let resp = String::from_utf8(bytes).unwrap();
 
-    let timeline: Vec<Tweet> = serde_json::from_str(&resp).unwrap();
+    let mut timeline: Vec<Tweet> = serde_json::from_str(&resp).unwrap();
+    timeline.reverse();
 
     timeline
 }

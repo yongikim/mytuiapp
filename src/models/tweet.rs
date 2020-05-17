@@ -11,6 +11,6 @@ pub struct Tweet {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    name: String,
-    screen_name: String,
+    pub name: String,
+    pub screen_name: String,
 }
