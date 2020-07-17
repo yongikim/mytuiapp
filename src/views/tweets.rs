@@ -1,21 +1,18 @@
 extern crate terminal_size;
 extern crate termion;
 
-use std::io::{stdin, stdout, Write};
+use std::io::{stdout, Write};
 use terminal_size::{terminal_size, Height, Width};
 use termion::clear;
 use termion::color;
 use termion::cursor;
 use termion::cursor::DetectCursorPos;
-use termion::event::*;
-use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 
 use crate::models::tweet::Tweet;
 
 pub fn home_timeline(timeline: &Vec<Tweet>) {
-    let stdin = stdin();
     let mut screen = AlternateScreen::from(stdout().into_raw_mode().unwrap());
     let (Width(column_size), Height(row_size)) = terminal_size().unwrap();
     let mut v: Vec<String> = vec![];
@@ -67,16 +64,6 @@ pub fn home_timeline(timeline: &Vec<Tweet>) {
         cursor::Goto(1, y - 1)
     )
     .unwrap();
-    screen.flush().unwrap();
-
-    for c in stdin.keys() {
-        match c.unwrap() {
-            Key::Char('q') => break,
-            Key::Char(_c) => {}
-            _ => {}
-        }
-    }
-    write!(screen, "{}{}", clear::All, cursor::Goto(1, 1)).unwrap();
     screen.flush().unwrap();
 }
 
