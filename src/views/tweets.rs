@@ -1,24 +1,17 @@
 extern crate terminal_size;
 extern crate termion;
 
-use std::io::{stdout, Write};
 use terminal_size::{terminal_size, Height, Width};
-use termion::clear;
 use termion::color;
-use termion::cursor;
-use termion::cursor::DetectCursorPos;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
 
 use crate::models::tweet::Tweet;
 
-pub fn home_timeline(timeline: &Vec<Tweet>) {
-    let mut screen = AlternateScreen::from(stdout().into_raw_mode().unwrap());
+/*
+ * Format tweets for display
+ */
+pub fn home_timeline(timeline: &Vec<Tweet>) -> Vec<String> {
     let (Width(column_size), Height(row_size)) = terminal_size().unwrap();
     let mut v: Vec<String> = vec![];
-
-    write!(screen, "{}{}", clear::All, cursor::Goto(1, 1)).unwrap();
-    screen.flush().unwrap();
 
     for tweet in timeline {
         let time: String = tweet.created_at.clone();
@@ -51,24 +44,15 @@ pub fn home_timeline(timeline: &Vec<Tweet>) {
     if v.len() > row_size as usize {
         row_offset = v.len() - (row_size as usize) + 1;
     }
+    v[row_offset..].to_vec();
 
-    for l in row_offset..v.len() {
-        write!(screen, "{}", v[l]).unwrap();
-    }
-    let (_x, y) = screen.cursor_pos().unwrap();
-    write!(
-        screen,
-        "tweets: {:?}, offset: {:?}{}",
-        v.len(),
-        row_offset,
-        cursor::Goto(1, y - 1)
-    )
-    .unwrap();
-    screen.flush().unwrap();
+    v
 }
 
+/*
+ * Calculate str width
+ */
 fn count_str_width(s: &String) -> usize {
-    // 文字幅を計算する
     let mut n = 0;
     for c in s.chars() {
         if c.len_utf8() == 1 {
