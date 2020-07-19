@@ -1,4 +1,4 @@
-use rwitter::controllers;
+use rwitter::interactors;
 use std::io::{stdin, stdout};
 use termion::cursor::DetectCursorPos;
 use termion::event::*;
@@ -6,16 +6,11 @@ use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 
-// TODO: 一番下の行にツイート取得時刻を表示する
 fn main() {
     let stdin = stdin();
     let mut screen = AlternateScreen::from(stdout().into_raw_mode().unwrap());
-    let mut tweets = controllers::timeline_controller::call();
 
-    // let (_x, _y) = screen.cursor_pos().unwrap();
-
-    rwitter::flush_clear_all(&mut screen);
-    rwitter::flush_tweets(&mut screen, &tweets);
+    interactors::get_timeline_interactor::call(&mut screen);
 
     for c in stdin.keys() {
         match c.unwrap() {
@@ -24,8 +19,7 @@ fn main() {
 
             // Reload timeline
             Key::Char('r') => {
-                tweets = controllers::timeline_controller::call();
-                rwitter::flush_tweets(&mut screen, &tweets);
+                interactors::get_timeline_interactor::call(&mut screen);
             }
 
             Key::Char(_c) => {}
@@ -33,5 +27,5 @@ fn main() {
         }
     }
 
-    rwitter::flush_clear_all(&mut screen);
+    interactors::quit_app_interactor::call(&mut screen);
 }
