@@ -25,3 +25,18 @@ pub fn get_home_timeline(credits: &Credits) -> Vec<Tweet> {
 
     timeline
 }
+
+pub fn post_tweet(credits: &Credits, text: &String) -> String {
+    let endpoint = "https://api.twitter.com/1.1/statuses/update.json";
+
+    let consumer = Token::new(&credits.api_key, &credits.api_secret_key);
+    let access = Token::new(&credits.access_token, &credits.access_token_secret);
+    let mut req_param = HashMap::new();
+    req_param.insert("status".into(), text.into());
+
+    // TODO: Suggest to reload instead of calling `panic!`
+    let bytes = oauth::post(endpoint, &consumer, Some(&access), Some(&req_param)).unwrap();
+    let resp = String::from_utf8(bytes).unwrap();
+
+    resp
+}

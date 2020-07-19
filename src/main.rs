@@ -6,6 +6,11 @@ use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 
+/*
+ * TODO
+ * 1. Implement posting tweet
+ * 2. Implement moving cursor
+ */
 fn main() {
     let stdin = stdin();
     let mut screen = AlternateScreen::from(stdout().into_raw_mode().unwrap());
@@ -22,7 +27,11 @@ fn main() {
                 interactors::get_timeline_interactor::call(&mut screen);
             }
 
-            Key::Char(_c) => {}
+            // Post a tweet
+            Key::Char('c') => {
+                interactors::post_tweet_interactor::call(&mut screen);
+            }
+
             _ => {}
         }
     }
