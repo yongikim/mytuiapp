@@ -1,8 +1,8 @@
 use crate::apis;
 
-use std::io::{stdin, Write};
-use termion::event::*;
-use termion::input::TermRead;
+use std::fs;
+use std::io::Write;
+use std::process::{Command, Stdio};
 use termion::{clear, cursor};
 
 pub fn call<W: Write>(writer: &mut W) {
@@ -10,31 +10,32 @@ pub fn call<W: Write>(writer: &mut W) {
     let credits = apis::credits::get_credits();
     let resp = apis::tweets::post_tweet(&credits, &text);
 
-    /* for debug */
+    /* Show reponse from the api for debug */
     write!(writer, "{}{}", clear::All, cursor::Goto(1, 1)).unwrap();
-    write!(writer, "{:?}", resp).unwrap();
+    write!(writer, "{:#?}", resp).unwrap();
     writer.flush().unwrap();
 }
 
 fn compose_tweet<W: Write>(writer: &mut W) -> String {
+    let tweet_file = "tweet.txt";
+    Command::new("vi")
+        .arg(tweet_file)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .output()
+        .unwrap();
+
     write!(writer, "{}{}", clear::All, cursor::Goto(1, 1)).unwrap();
     writer.flush().unwrap();
 
-    let stdin = stdin();
-    for c in stdin.keys() {
-        match c.unwrap() {
-            Key::Ctrl('c') => {
-                break;
-            }
-            Key::Char(c) => {
-                /* TODO: store and edit text */
-                write!(writer, "{}", c).unwrap();
-            }
-            _ => {}
-        }
+    let tweet = fs::read_to_string(tweet_file).expect("Something went wrong reading the tweet");
 
-        writer.flush().unwrap();
-    }
+    // TODO: validate tweet
 
-    "hi everyone.".to_string()
+    write!(writer, "{}", "posting tweet...").unwrap();
+    writer.flush().unwrap();
+
+    fs::remove_file("tweet.txt").unwrap();
+
+    tweet
 }

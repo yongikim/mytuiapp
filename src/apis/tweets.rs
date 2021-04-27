@@ -7,6 +7,7 @@ use crate::models::tweet::Tweet;
 
 use oauth::Token;
 use std::collections::HashMap;
+use std::error::Error;
 
 pub fn get_home_timeline(credits: &Credits) -> Vec<Tweet> {
     let endpoint = "https://api.twitter.com/1.1/statuses/home_timeline.json";
@@ -26,7 +27,7 @@ pub fn get_home_timeline(credits: &Credits) -> Vec<Tweet> {
     timeline
 }
 
-pub fn post_tweet(credits: &Credits, text: &String) -> String {
+pub fn post_tweet(credits: &Credits, text: &String) -> Result<String, Box<dyn Error>> {
     let endpoint = "https://api.twitter.com/1.1/statuses/update.json";
 
     let consumer = Token::new(&credits.api_key, &credits.api_secret_key);
@@ -35,8 +36,8 @@ pub fn post_tweet(credits: &Credits, text: &String) -> String {
     req_param.insert("status".into(), text.into());
 
     // TODO: Suggest to reload instead of calling `panic!`
-    let bytes = oauth::post(endpoint, &consumer, Some(&access), Some(&req_param)).unwrap();
+    let bytes = oauth::post(endpoint, &consumer, Some(&access), Some(&req_param))?;
     let resp = String::from_utf8(bytes).unwrap();
 
-    resp
+    Ok(resp)
 }
