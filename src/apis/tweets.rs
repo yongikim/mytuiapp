@@ -21,8 +21,7 @@ pub fn get_home_timeline(credits: &Credits) -> Vec<Tweet> {
     let bytes = oauth::get(endpoint, &consumer, Some(&access), Some(&req_param)).unwrap();
     let resp = String::from_utf8(bytes).unwrap();
 
-    let mut timeline: Vec<Tweet> = serde_json::from_str(&resp).unwrap();
-    timeline.reverse();
+    let timeline: Vec<Tweet> = serde_json::from_str(&resp).unwrap();
 
     timeline
 }
