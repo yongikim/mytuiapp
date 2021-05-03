@@ -1,14 +1,14 @@
-use rwitter::interactors;
-use rwitter::interactors::get_timeline_interactor::HomeTimeline;
-use rwitter::interactors::get_timeline_interactor::Render;
-use rwitter::models::credits::Credits;
-use rwitter::models::cursor::Cursor;
-use std::io::{stdin, stdout, Write};
-use termion::event::*;
-use termion::input::TermRead;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use termion::{clear, cursor};
+use rwitter::{
+    interactors::{
+        get_timeline_interactor::{HomeTimeline, Render},
+        post_tweet_interactor, quit_app_interactor,
+    },
+    models::credits::Credits,
+    pages::tweet_detail::TweetDetail,
+};
+
+use std::io::{stdin, stdout};
+use termion::{event::*, input::TermRead, raw::IntoRawMode, screen::AlternateScreen};
 
 /*
  * TODO
@@ -32,7 +32,7 @@ impl Rwitter {
         let credits = Credits::new();
 
         // Home
-        let home_timeline = interactors::get_timeline_interactor::HomeTimeline::new(&credits);
+        let home_timeline = HomeTimeline::new(&credits);
 
         Rwitter {
             credits,
@@ -60,7 +60,7 @@ impl Rwitter {
 
                 // Post a tweet
                 Key::Char('c') => {
-                    interactors::post_tweet_interactor::call(screen);
+                    post_tweet_interactor::call(screen);
                 }
 
                 Key::Char('k') => {
@@ -71,11 +71,20 @@ impl Rwitter {
                     self.home_timeline.handle_cursor_move(screen, 1);
                 }
 
+                Key::Char('\n') => {
+                    let tweet = self.home_timeline.get_focused_tweet();
+                    let tweet_detail_page = TweetDetail::from_tweet(tweet);
+
+                    tweet_detail_page.start(screen);
+
+                    self.home_timeline.render(screen);
+                }
+
                 _ => {}
             }
         }
 
         // Quit
-        interactors::quit_app_interactor::call(screen);
+        quit_app_interactor::call(screen);
     }
 }

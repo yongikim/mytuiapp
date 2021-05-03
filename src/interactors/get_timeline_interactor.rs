@@ -1,6 +1,7 @@
 extern crate terminal_size;
 extern crate termion;
 
+use crate::models::tweet::Tweet;
 use std::io::Write;
 use terminal_size::{terminal_size, Height, Width};
 
@@ -21,8 +22,9 @@ pub struct HomeTimeline {
 impl Render for HomeTimeline {
     fn render<W: Write>(&self, writer: &mut W) {
         for tweet_line in &self.tweet_lines {
-            tweet_line.render(writer);
+            tweet_line.render_without_flush(writer);
         }
+        writer.flush().unwrap();
     }
 }
 
@@ -32,7 +34,7 @@ impl HomeTimeline {
 
         let (Width(_column_size), Height(row_size)) = terminal_size().unwrap();
         let timeline = apis::tweets::get_home_timeline(credits);
-        let tweet_lines = timeline[0..(row_size as usize - 1)]
+        let tweet_lines = timeline[0..(row_size as usize)]
             .iter()
             .enumerate()
             .map(|(i, tweet)| {
@@ -52,7 +54,7 @@ impl HomeTimeline {
 
         let (Width(_column_size), Height(row_size)) = terminal_size().unwrap();
         let timeline = apis::tweets::get_home_timeline(credits);
-        let tweet_lines = timeline[0..(row_size as usize - 1)]
+        let tweet_lines = timeline[0..(row_size as usize)]
             .iter()
             .enumerate()
             .map(|(i, tweet)| {
@@ -81,5 +83,15 @@ impl HomeTimeline {
             tweet_line.is_focused = false;
             tweet_line.render(writer);
         }
+    }
+
+    pub fn get_focused_tweet(&self) -> &Tweet {
+        let tweet_line = self
+            .tweet_lines
+            .iter()
+            .find(|tweet_line| tweet_line.is_focused)
+            .unwrap();
+
+        &tweet_line.tweet
     }
 }

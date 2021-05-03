@@ -4,7 +4,7 @@ use std::{io::Write, string::ToString};
 use terminal_size::{terminal_size, Height, Width};
 use termion::{color, cursor, style};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Tweet {
     pub created_at: String,
     pub text: String,
@@ -15,11 +15,7 @@ pub struct Tweet {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TweetLine {
-    pub created_at: String,
-    pub text: String,
-    pub retweet_count: i32,
-    pub favorite_count: i32,
-    pub user: User,
+    pub tweet: Tweet,
     pub is_focused: bool,
     pub index: usize,
 }
@@ -40,17 +36,31 @@ impl Render for TweetLine {
             cursor::Goto(1, self.index as u16 + 1),
         )
         .unwrap();
+        writer.flush().unwrap();
+    }
+}
+
+impl TweetLine {
+    pub fn render_without_flush<W: Write>(&self, writer: &mut W) {
+        write!(
+            writer,
+            "{}{}{}",
+            cursor::Goto(1, self.index as u16 + 1),
+            self.to_string(),
+            cursor::Goto(1, self.index as u16 + 1),
+        )
+        .unwrap();
     }
 }
 
 impl ToString for TweetLine {
     fn to_string(&self) -> String {
         let (Width(column_size), Height(_row_size)) = terminal_size().unwrap();
-        let time = &self.created_at;
-        let lines: Vec<&str> = self.text.split("\n").collect();
-        let text_max_width = column_size as usize - time.len() - 18;
+        let time = &self.tweet.created_at;
+        let lines: Vec<&str> = self.tweet.text.split("\n").collect();
+        let text_max_width = column_size as usize - time.len() - 19;
         let mut text: String = lines.concat();
-        let mut user_name = self.user.screen_name.clone();
+        let mut user_name = self.tweet.user.screen_name.clone();
 
         while self.count_str_width(&text) > text_max_width {
             text.pop();
@@ -64,9 +74,9 @@ impl ToString for TweetLine {
             user_name.push(' ');
         }
 
-        if self.is_focused {
+        let mut string = if self.is_focused {
             format!(
-                "{}{}{}{}{}: {} {}{}\r\n",
+                "{}{}{}{}{}: {} {}{}",
                 cursor::Hide,
                 style::Bold,
                 color::Bg(color::Green),
@@ -78,7 +88,7 @@ impl ToString for TweetLine {
             )
         } else {
             format!(
-                "{}{}{}{}{}: {}{}{} {}\r\n",
+                "{}{}{}{}{}: {}{}{} {}",
                 cursor::Hide,
                 color::Bg(color::Reset),
                 color::Fg(color::Blue),
@@ -89,18 +99,21 @@ impl ToString for TweetLine {
                 color::Fg(color::Reset),
                 text,
             )
+        };
+
+        let (Width(_column_size), Height(row_size)) = terminal_size().unwrap();
+        if row_size - 1 != self.index as u16 {
+            string.push_str("\r\n");
         }
+
+        string
     }
 }
 
 impl TweetLine {
     pub fn from_tweet(tweet: &Tweet, index: usize, is_focused: bool) -> TweetLine {
         TweetLine {
-            created_at: tweet.created_at.to_string(),
-            text: tweet.text.to_string(),
-            user: tweet.user.clone(),
-            favorite_count: tweet.favorite_count,
-            retweet_count: tweet.retweet_count,
+            tweet: tweet.clone(),
             index,
             is_focused,
         }
