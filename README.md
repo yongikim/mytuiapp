@@ -23,8 +23,14 @@ cargo run
 ```
 
 ## Key comamnds
+### Home Timeline page
 - `r`: reload timeline
 - `c`: compose tweet
 - `q`: exit
 - `j`: cursor down
 - `k`: cursor up
+- `return`: navigate to tweet detail page
+
+### Tweet Detail page
+- `f`: favorite
+- `q`: back to home timeline page
