@@ -2,7 +2,6 @@
 A TUI Twitter client written in Rust.
 
 ## Requirements
-- macOS
 - `vi` command to compose tweet
 
 ## Usage
