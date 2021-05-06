@@ -1,90 +1,60 @@
+extern crate anyhow;
+extern crate kuon;
+extern crate tokio;
+
+use anyhow::Result;
+use kuon::TwitterAPI;
 use rwitter::{
-    interactors::{
-        get_timeline_interactor::{HomeTimeline, Render},
-        post_tweet_interactor, quit_app_interactor,
-    },
-    models::credits::Credits,
-    pages::tweet_detail::TweetDetail,
+    interactors::quit_app_interactor, models::credits::Credits, pages::home_timeline::HomeTimeline,
 };
 
-use std::io::{stdin, stdout};
-use termion::{event::*, input::TermRead, raw::IntoRawMode, screen::AlternateScreen};
+use std::io::stdout;
+use termion::{raw::IntoRawMode, screen::AlternateScreen};
 
-/*
- * TODO
- * 1. Implement posting tweet
- * 2. Implement moving cursor
- * 3. Implement auto reload
- */
-fn main() {
-    let mut app = Rwitter::new();
-    app.start()
+#[tokio::main]
+async fn main() -> Result<()> {
+    let mut app = Rwitter::new().await?;
+    app.start().await?;
+
+    Ok(())
 }
 
 struct Rwitter {
     pub credits: Credits,
     pub home_timeline: HomeTimeline,
+    pub api: TwitterAPI,
 }
 
 impl Rwitter {
-    fn new() -> Rwitter {
+    async fn new() -> Result<Rwitter> {
         // Get credentials
         let credits = Credits::new();
+        let builder = kuon::TwitterAPI::builder()
+            .access_token(&credits.access_token)
+            .access_token_secret(&credits.access_token_secret)
+            .api_key(&credits.api_key)
+            .api_secret_key(&credits.api_secret_key);
+        let api = builder.build().await?;
 
         // Home
-        let home_timeline = HomeTimeline::new(&credits);
+        let home_timeline = HomeTimeline::new(&api).await?;
 
-        Rwitter {
+        Ok(Rwitter {
             credits,
             home_timeline,
-        }
+            api,
+        })
     }
 
-    fn start(&mut self) {
+    async fn start(&mut self) -> Result<()> {
         // Prepare screen
         let screen = &mut AlternateScreen::from(stdout().into_raw_mode().unwrap());
 
-        self.home_timeline.render(screen);
-
-        // Wait for user input
-        for c in stdin().keys() {
-            match c.unwrap() {
-                // Quit app
-                Key::Char('q') => break,
-
-                // Reload timeline
-                Key::Char('r') => {
-                    self.home_timeline.update(&self.credits);
-                    self.home_timeline.render(screen)
-                }
-
-                // Post a tweet
-                Key::Char('c') => {
-                    post_tweet_interactor::call(screen);
-                }
-
-                Key::Char('k') => {
-                    self.home_timeline.handle_cursor_move(screen, -1);
-                }
-
-                Key::Char('j') => {
-                    self.home_timeline.handle_cursor_move(screen, 1);
-                }
-
-                Key::Char('\n') => {
-                    let tweet = self.home_timeline.get_focused_tweet();
-                    let tweet_detail_page = TweetDetail::from_tweet(tweet);
-
-                    tweet_detail_page.start(screen);
-
-                    self.home_timeline.render(screen);
-                }
-
-                _ => {}
-            }
-        }
+        self.home_timeline.start(screen, &self.api).await?;
 
         // Quit
         quit_app_interactor::call(screen);
+
+        Ok(())
     }
 }

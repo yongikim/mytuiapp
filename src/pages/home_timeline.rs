@@ -1,13 +1,18 @@
+extern crate anyhow;
+extern crate kuon;
 extern crate terminal_size;
 extern crate termion;
 
-use crate::models::tweet::Tweet;
-use std::io::Write;
+use anyhow::Result;
+use kuon::{TrimTweet, TwitterAPI};
+use std::io::{stdin, Write};
 use terminal_size::{terminal_size, Height, Width};
+use termion::{event::*, input::TermRead};
 
 use crate::{
-    apis,
-    models::{credits::Credits, cursor::Cursor, tweet::TweetLine},
+    interactors::post_tweet_interactor,
+    models::{cursor::Cursor, tweet::TweetLine},
+    pages::tweet_detail::TweetDetail,
 };
 
 pub trait Render {
@@ -29,11 +34,11 @@ impl Render for HomeTimeline {
 }
 
 impl HomeTimeline {
-    pub fn new(credits: &Credits) -> HomeTimeline {
+    pub async fn new(api: &TwitterAPI) -> Result<HomeTimeline> {
         let cursor = Cursor { x: 1, y: 1 };
 
         let (Width(_column_size), Height(row_size)) = terminal_size().unwrap();
-        let timeline = apis::tweets::get_home_timeline(credits);
+        let timeline = api.home_timeline().count(100).send().await?;
         let tweet_lines = timeline[0..(row_size as usize)]
             .iter()
             .enumerate()
@@ -43,17 +48,17 @@ impl HomeTimeline {
             })
             .collect();
 
-        HomeTimeline {
+        Ok(HomeTimeline {
             cursor,
             tweet_lines,
-        }
+        })
     }
 
-    pub fn update(&mut self, credits: &Credits) {
+    pub async fn update(&mut self, api: &TwitterAPI) -> Result<()> {
         let Self { cursor, .. } = self;
 
         let (Width(_column_size), Height(row_size)) = terminal_size().unwrap();
-        let timeline = apis::tweets::get_home_timeline(credits);
+        let timeline = api.home_timeline().count(100).send().await?;
         let tweet_lines = timeline[0..(row_size as usize)]
             .iter()
             .enumerate()
@@ -64,6 +69,7 @@ impl HomeTimeline {
             .collect();
 
         self.tweet_lines = tweet_lines;
+        Ok(())
     }
 
     pub fn handle_cursor_move<W: Write>(&mut self, writer: &mut W, dy: i32) {
@@ -85,7 +91,7 @@ impl HomeTimeline {
         }
     }
 
-    pub fn get_focused_tweet(&self) -> &Tweet {
+    pub fn get_focused_tweet(&self) -> &TrimTweet {
         let tweet_line = self
             .tweet_lines
             .iter()
@@ -93,5 +99,65 @@ impl HomeTimeline {
             .unwrap();
 
         &tweet_line.tweet
+    }
+}
+
+impl HomeTimeline {
+    pub async fn start<W: Write>(&mut self, screen: &mut W, api: &TwitterAPI) -> Result<()> {
+        self.render(screen);
+
+        // Wait for user input
+        for c in stdin().keys() {
+            let mut render_home = false;
+
+            match c.unwrap() {
+                // Quit app
+                Key::Char('q') => break,
+
+                // Reload timeline
+                Key::Char('r') => {
+                    self.update(api).await?;
+
+                    render_home = true;
+                }
+
+                // Post a tweet
+                Key::Char('c') => {
+                    post_tweet_interactor::call(screen, api).await?;
+
+                    render_home = true;
+                }
+
+                Key::Char('k') => {
+                    self.handle_cursor_move(screen, -1);
+                }
+
+                Key::Char('j') => {
+                    self.handle_cursor_move(screen, 1);
+                }
+
+                Key::Char('\n') => {
+                    let tweet = self.get_focused_tweet();
+                    let s = "".to_string();
+                    let mut tweet_detail_page = TweetDetail::from_tweet_id(
+                        screen,
+                        tweet.id_str.as_ref().unwrap_or(&s),
+                        &api,
+                    )
+                    .await?;
+
+                    tweet_detail_page.start(screen, api).await?;
+
+                    render_home = true;
+                }
+
+                _ => {}
+            }
+            if render_home {
+                self.render(screen);
+            }
+        }
+
+        Ok(())
     }
 }
