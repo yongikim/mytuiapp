@@ -1,4 +1,4 @@
-# Rwitter
+# twee-rs
 A TUI Twitter client written in Rust.
 ![twee-rs](https://user-images.githubusercontent.com/42469083/118253336-c83e4780-b4e4-11eb-9de8-2bfdd9e1a214.gif)
 
