@@ -1,8 +1,8 @@
-# Rwitter
+# twee-rs
 A TUI Twitter client written in Rust.
+![twee-rs](https://user-images.githubusercontent.com/42469083/118253336-c83e4780-b4e4-11eb-9de8-2bfdd9e1a214.gif)
 
 ## Requirements
-- macOS
 - `vi` command to compose tweet
 
 ## Usage
@@ -23,8 +23,14 @@ cargo run
 ```
 
 ## Key comamnds
+### Home Timeline page
 - `r`: reload timeline
 - `c`: compose tweet
 - `q`: exit
 - `j`: cursor down
 - `k`: cursor up
+- `return`: navigate to tweet detail page
+
+### Tweet Detail page
+- `f`: favorite
+- `q`: back to home timeline page
