@@ -3,7 +3,7 @@ extern crate kuon;
 extern crate term_cursor;
 extern crate unicode_width;
 
-use crate::pages::home_timeline::Render;
+use crate::{context::Context, render::Render};
 use anyhow::Result;
 use kuon::{Error, TrimTweet, TwitterAPI};
 use std::{
@@ -15,6 +15,74 @@ use termion::{color, cursor, event::Key, input::TermRead, style};
 
 pub struct TweetDetail {
     tweet: TrimTweet,
+}
+
+impl TweetDetail {
+    pub async fn from_tweet_id<W: Write>(
+        screen: &mut W,
+        id_str: &str,
+        api: &TwitterAPI,
+    ) -> Result<TweetDetail> {
+        match api.show_tweet().id(id_str).send().await {
+            Ok(tweet) => Ok(TweetDetail { tweet }),
+            Err(e) => {
+                write!(screen, "{:?}", e).unwrap();
+                screen.flush().unwrap();
+                let two_secs = time::Duration::from_millis(10000);
+                thread::sleep(two_secs);
+                panic!("error");
+            }
+        }
+    }
+
+    pub async fn start(&mut self, context: &mut Context) -> Result<()> {
+        let screen = &mut context.screen;
+        let api = &context.api;
+        let (Width(column_size), Height(row_size)) = terminal_size().unwrap();
+
+        self.render(screen);
+
+        for c in stdin().keys() {
+            match c.unwrap() {
+                Key::Char('q') => break,
+                Key::Char('f') => {
+                    match api.favorite().id(self.tweet.id).send().await {
+                        Ok(_) => {
+                            let id = self.tweet.id;
+                            match api.show_tweet().id(id).send().await {
+                                Ok(tweet) => {
+                                    self.tweet = tweet;
+                                    self.render(screen);
+                                }
+                                _ => panic!("Unexpected error!"),
+                            };
+                        }
+                        Err(Error::TwitterAPIError(e, _param_str)) => {
+                            write!(
+                                screen,
+                                "{}{}",
+                                cursor::Goto(column_size / 2 + 2, row_size),
+                                e.to_string().trim()
+                            )
+                            .unwrap();
+                            screen.flush().unwrap();
+
+                            let two_secs = time::Duration::from_millis(2000);
+                            thread::sleep(two_secs);
+
+                            self.render(screen);
+                        }
+                        Err(Error::HTTPRequestError(_err)) => {}
+                        _ => panic!("Unexpected error!"),
+                    };
+                }
+
+                _ => {}
+            }
+        }
+
+        Ok(())
+    }
 }
 
 impl Render for TweetDetail {
@@ -128,73 +196,5 @@ impl Render for TweetDetail {
         .unwrap();
 
         writer.flush().unwrap();
-    }
-}
-
-impl TweetDetail {
-    pub async fn from_tweet_id<W: Write>(
-        screen: &mut W,
-        id_str: &str,
-        api: &TwitterAPI,
-    ) -> Result<TweetDetail> {
-        let (Width(column_size), Height(row_size)) = terminal_size().unwrap();
-        match api.show_tweet().id(id_str).send().await {
-            Ok(tweet) => Ok(TweetDetail { tweet }),
-            Err(e) => {
-                write!(screen, "{:?}", e).unwrap();
-                screen.flush().unwrap();
-                let two_secs = time::Duration::from_millis(10000);
-                thread::sleep(two_secs);
-                panic!("error");
-            }
-            _ => panic!("Unexpected error!"),
-        }
-    }
-
-    pub async fn start<W: Write>(&mut self, writer: &mut W, api: &TwitterAPI) -> Result<()> {
-        let (Width(column_size), Height(row_size)) = terminal_size().unwrap();
-
-        self.render(writer);
-
-        for c in stdin().keys() {
-            match c.unwrap() {
-                Key::Char('q') => break,
-                Key::Char('f') => {
-                    match api.favorite().id(self.tweet.id).send().await {
-                        Ok(_) => {
-                            let id = self.tweet.id;
-                            match api.show_tweet().id(id).send().await {
-                                Ok(tweet) => {
-                                    self.tweet = tweet;
-                                    self.render(writer);
-                                }
-                                _ => panic!("Unexpected error!"),
-                            };
-                        }
-                        Err(Error::TwitterAPIError(e, _param_str)) => {
-                            write!(
-                                writer,
-                                "{}{}",
-                                cursor::Goto(column_size / 2 + 2, row_size),
-                                e.to_string().trim()
-                            )
-                            .unwrap();
-                            writer.flush().unwrap();
-
-                            let two_secs = time::Duration::from_millis(2000);
-                            thread::sleep(two_secs);
-
-                            self.render(writer);
-                        }
-                        Err(Error::HTTPRequestError(_err)) => {}
-                        _ => panic!("Unexpected error!"),
-                    };
-                }
-
-                _ => {}
-            }
-        }
-
-        Ok(())
     }
 }

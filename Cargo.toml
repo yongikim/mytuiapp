@@ -1,5 +1,5 @@
 [package]
-name = "rwitter"
+name = "twee-rs"
 version = "0.1.0"
 authors = ["yongikim <yongi.kim08@gmail.com>"]
 edition = "2018"

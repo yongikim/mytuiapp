@@ -1,16 +1,16 @@
 extern crate anyhow;
 extern crate kuon;
 
+use crate::context::Context;
 use anyhow::Result;
-use kuon::TwitterAPI;
 use std::fs;
 use std::io::Write;
 use std::process::{Command, Stdio};
 use termion::{clear, cursor};
 
-pub async fn call<W: Write>(writer: &mut W, api: &TwitterAPI) -> Result<()> {
-    let text = compose_tweet(writer);
-    api.tweet().status(&text).send().await?;
+pub async fn call(context: &mut Context) -> Result<()> {
+    let text = compose_tweet(&mut context.screen);
+    context.api.tweet().status(&text).send().await?;
 
     Ok(())
 }

@@ -12,8 +12,11 @@ pub struct Credits {
 
 impl Credits {
     pub fn new() -> Credits {
-        let mut path = dirs::home_dir().unwrap();
-        path.push(".twitter_credentials.json");
+        let path = {
+            let mut path = dirs::home_dir().unwrap();
+            path.push(".twitter_credentials.json");
+            path
+        };
         let file = File::open(path).unwrap();
         let reader = BufReader::new(file);
         let credits: Credits = serde_json::from_reader(reader).unwrap();

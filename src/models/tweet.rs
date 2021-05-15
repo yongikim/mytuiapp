@@ -1,6 +1,6 @@
 extern crate kuon;
 
-use crate::pages::home_timeline::Render;
+use crate::render::Render;
 use kuon::TrimTweet;
 use serde::{Deserialize, Serialize};
 use std::{io::Write, string::ToString};

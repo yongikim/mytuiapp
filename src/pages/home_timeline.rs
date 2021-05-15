@@ -10,14 +10,12 @@ use terminal_size::{terminal_size, Height, Width};
 use termion::{event::*, input::TermRead};
 
 use crate::{
+    context::Context,
     interactors::post_tweet_interactor,
     models::{cursor::Cursor, tweet::TweetLine},
     pages::tweet_detail::TweetDetail,
+    render::Render,
 };
-
-pub trait Render {
-    fn render<W: Write>(&self, writer: &mut W);
-}
 
 pub struct HomeTimeline {
     cursor: Cursor,
@@ -103,8 +101,8 @@ impl HomeTimeline {
 }
 
 impl HomeTimeline {
-    pub async fn start<W: Write>(&mut self, screen: &mut W, api: &TwitterAPI) -> Result<()> {
-        self.render(screen);
+    pub async fn start(&mut self, context: &mut Context) -> Result<()> {
+        self.render(&mut context.screen);
 
         // Wait for user input
         for c in stdin().keys() {
@@ -116,45 +114,42 @@ impl HomeTimeline {
 
                 // Reload timeline
                 Key::Char('r') => {
-                    self.update(api).await?;
-
+                    self.update(&context.api).await?;
                     render_home = true;
                 }
 
                 // Post a tweet
                 Key::Char('c') => {
-                    post_tweet_interactor::call(screen, api).await?;
-
+                    post_tweet_interactor::call(context).await?;
                     render_home = true;
                 }
 
                 Key::Char('k') => {
-                    self.handle_cursor_move(screen, -1);
+                    self.handle_cursor_move(&mut context.screen, -1);
                 }
 
                 Key::Char('j') => {
-                    self.handle_cursor_move(screen, 1);
+                    self.handle_cursor_move(&mut context.screen, 1);
                 }
 
                 Key::Char('\n') => {
                     let tweet = self.get_focused_tweet();
                     let s = "".to_string();
                     let mut tweet_detail_page = TweetDetail::from_tweet_id(
-                        screen,
+                        &mut context.screen,
                         tweet.id_str.as_ref().unwrap_or(&s),
-                        &api,
+                        &context.api,
                     )
                     .await?;
 
-                    tweet_detail_page.start(screen, api).await?;
-
+                    tweet_detail_page.start(context).await?;
                     render_home = true;
                 }
 
                 _ => {}
             }
             if render_home {
-                self.render(screen);
+                self.render(&mut context.screen);
             }
         }
 
