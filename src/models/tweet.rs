@@ -55,7 +55,7 @@ impl ToString for TweetLine {
             .tweet
             .created_at
             .map_or("".to_string(), |t| t.to_string());
-        let lines: Vec<&str> = self.tweet.text.split("\n").collect();
+        let lines: Vec<&str> = self.tweet.text.split('\n').collect();
         let text_max_width = column_size as usize - time.len() - 19;
         let mut text: String = lines.concat();
         let default_user_name = "".to_string();
@@ -121,7 +121,7 @@ impl TweetLine {
         }
     }
 
-    fn count_str_width(&self, s: &String) -> usize {
+    fn count_str_width(&self, s: &str) -> usize {
         let mut n = 0;
         for c in s.chars() {
             if c.len_utf8() == 1 {

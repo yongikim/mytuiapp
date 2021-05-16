@@ -94,10 +94,9 @@ impl Render for TweetDetail {
         for i in 0..(row_size as usize) {
             write!(
                 writer,
-                "{}{}{}{}",
+                "{}{}|{}",
                 cursor::Goto(column_size / 2, i as u16 + 1),
                 color::Fg(color::Blue),
-                "|",
                 empty,
             )
             .unwrap();
@@ -147,8 +146,7 @@ impl Render for TweetDetail {
         .unwrap();
 
         // Body
-        for i in 0..lines.len() {
-            let line = &lines[i];
+        for (i, line) in lines.iter().enumerate() {
             write!(
                 writer,
                 "{}{}{}",

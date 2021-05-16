@@ -31,7 +31,7 @@ fn compose_tweet<W: Write>(writer: &mut W) -> String {
 
     // TODO: validate tweet
 
-    write!(writer, "{}", "posting tweet...").unwrap();
+    write!(writer, "posting tweet...").unwrap();
     writer.flush().unwrap();
 
     fs::remove_file("tweet.txt").unwrap();

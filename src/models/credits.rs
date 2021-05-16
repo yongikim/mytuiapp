@@ -10,8 +10,14 @@ pub struct Credits {
     pub access_token_secret: String,
 }
 
+impl Default for Credits {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Credits {
-    pub fn new() -> Credits {
+    pub fn new() -> Self {
         let path = {
             let mut path = dirs::home_dir().unwrap();
             path.push(".twitter_credentials.json");
