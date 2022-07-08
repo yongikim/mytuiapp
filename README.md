@@ -7,7 +7,7 @@ A TUI Twitter client written in Rust.
 
 ## Usage
 ### Credentials
-Get credentials from Twitter Developer website and put it in the home directory, and name it `~/.twitter_credentials.json`.
+Get credentials from Twitter Developer website and put it in the home directory, and name it `~/.twitter_credentials.json`,
 ``` json
 {
   "api_key": "xxxx",
@@ -17,7 +17,7 @@ Get credentials from Twitter Developer website and put it in the home directory,
 }
 ```
 
-Then run
+then run
 ``` sh
 cargo run
 ```
